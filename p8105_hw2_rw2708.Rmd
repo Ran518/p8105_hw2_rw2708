@@ -1,0 +1,36 @@
+---
+title: "p8105_hw2_rw2708"
+author: "Ran"
+date: "9/25/2019"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+```
+
+```{r Trash_Wheel}
+wheel_data = read_excel("hw2data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", skip = 1, sheet = 1, range="A2:n338") %>% 
+    janitor::clean_names() %>% 
+    drop_na(dumpster) %>% 
+    mutate(sports_balls = round(sports_balls,digits = 0)) %>% 
+    mutate(sports_balls = as.integer(sports_balls))
+    
+```
+
+```{r precipitation2018}
+precipitation2018_data=read_excel("hw2data/HealthyHarborWaterWheelTotals2018-7-28.xlsx",skip = 1, sheet = 3,range="A2:B14") %>% 
+  janitor::clean_names() %>%
+  drop_na(total) %>% 
+  mutate(year = 2018)
+   
+```
+
+```{r precipitation2017}
+precipitation2017_data=read_excel("hw2data/HealthyHarborWaterWheelTotals2018-7-28.xlsx",skip = 1, sheet = 4,range="A2:B14") %>% 
+  janitor::clean_names() %>%
+  mutate(year = 2018)
+   
+```
