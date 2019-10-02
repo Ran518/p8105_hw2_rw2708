@@ -25,7 +25,10 @@ wheel_data = read_excel("hw2data/Trash-Wheel-Collection-Totals-8-6-19.xlsx", ski
     
     #round the number of sports balls to the nearest integer and converts the result to an integer variable
     mutate(sports_balls = round(sports_balls,digits = 0)) %>% 
-    mutate(sports_balls = as.integer(sports_balls))
+    mutate(sports_balls = as.integer(sports_balls)) 
+
+wheel_data
+
     
 ```
 
@@ -44,6 +47,8 @@ precipitation2018_data=read_excel("hw2data/Trash-Wheel-Collection-Totals-8-6-19.
   # add a variable year 
   mutate(year = 2018)
 
+precipitation2018_data
+
 #read the excel file (2017 precipitation data)
 precipitation2017_data=read_excel("hw2data/Trash-Wheel-Collection-Totals-8-6-19.xlsx",skip = 1, sheet = 6,range ="A2:B14") %>% 
   
@@ -56,16 +61,21 @@ precipitation2017_data=read_excel("hw2data/Trash-Wheel-Collection-Totals-8-6-19.
   # add a variable year 
   mutate(year = 2017)
 
+precipitation2017_data
+
 #combine the above two datasets
 combine_data=bind_rows(precipitation2017_data, precipitation2018_data) %>% 
   janitor::clean_names() %>%
   
   #convert month to a character variable
-  mutate(month=month.name[month])
+  mutate(month=month.name[month])  
+
+combine_data
+
 
 ```
 
-Description: For the first dataset (wheel_data), there exist `r nrow(wheel_data)` observations, with `r ncol(wheel_data)`, and it's key variables are `r ls(wheel_data)`. Furthermore,the median number of sports balls in a dumpster in 2017 is `r median(wheel_data)`. As for the second dataset (combine_data), there exist `r nrow(combine_data)` observations, with `r ncol(combine_data)`, and it's key variables are `r ls(combine_data)`. Moreover, the total precipitation in 2018 is `r sum(pull(precipitation2018_data,total))`.
+Description: For the first dataset (wheel_data), there exist `r nrow(wheel_data)` observations, with `r ncol(wheel_data)` variables, and it's key variables are `r ls(wheel_data)`. Furthermore,the median number of sports balls in a dumpster in 2017 is `r median(pull(wheel_data,sports_balls))`. As for the second dataset (combine_data), there exist `r nrow(combine_data)` observations, with `r ncol(combine_data)` variables, and it's key variables are `r ls(combine_data)`. Moreover, the total precipitation in 2018 is `r sum(pull(precipitation2018_data,total))`.
 
 
 #Problem 2
@@ -82,7 +92,9 @@ pol_data=read_csv(file ="hw2data/pols-month.csv") %>%
     names_prefix = "prez_",
     values_to = "president_values") %>% 
     filter(president_values=="0") %>% 
-  select(-day,-president_values)
+    select(-day,-president_values)
+
+pol_data
 
 snp_data=read_csv(file ="hw2data/snp.csv") %>%
    janitor::clean_names() %>%
@@ -93,6 +105,8 @@ snp_data=read_csv(file ="hw2data/snp.csv") %>%
   select(-day) %>% 
   select(year, month, close)
 
+snp_data
+
 unemployment_data = read_csv(file ="hw2data/unemployment.csv") %>%
                pivot_longer(
                  Jan:Dec,
@@ -102,15 +116,17 @@ unemployment_data = read_csv(file ="hw2data/unemployment.csv") %>%
        mutate(year=as.character(year)) %>% 
        mutate(month = str_subset(month.name, str_to_sentence(month)))
 
+unemployment_data
+
 #Join the datasets by merging snp into pols, and merging unemployment into the result.
 pol_snp=left_join(pol_data,snp_data, by=c("year","month"))
  
-
 final_data=left_join(pol_snp,unemployment_data, by=c("year","month"))
 
+final_data
+
 ```
-Description: For the first dataset (pol_data), there exist `r nrow(pol_data)` observations, with `r ncol(pol_data)`, and it's key variables are `r ls(pol_data)`. Furthermore,the range of years is `r range(pol_data,year)`. For the second dataset (snp_data), there exist `r nrow(snp_data)` observations, with `r ncol(snp_data)`, and it's key variables are `r ls(snp_data)`. Furthermore,the range of years is `r range(snp_data,year)`.  For the third dataset (unemployment_data), there exist `r nrow(unemployment_data)` observations, with `r ncol(unemployment_data)`, and it's key variables are `r ls(unemployment_data)`. Furthermore,the range of years is `r range(unemployment_data,year)`.
-For the last dataset (final_data), which consist of the above three datasets.It has `r nrow(pol_data)` observations, with `r ncol(pol_data)`, and it's key variables are `r ls(pol_data)`. Furthermore,the range of years is `r range(pol_data,year)`.
+Description: 1) For the first dataset (pol_data), which contains the polls data for presidential election over time. The data has `r nrow(pol_data)` observations, with `r ncol(pol_data)` variables, and it's key variables are `r ls(pol_data)`. Furthermore,the range of years is (`r range(pull(pol_data,year))`). 2) For the second dataset (snp_data), which contains figures of a "close" variable over time. The data has `r nrow(snp_data)` observations, with `r ncol(snp_data)` variables, and it's key variables are `r ls(snp_data)`. And the range of years is (`r range(pull(snp_data,year))`).  3) For the third dataset (unemployment_data),which contains the unemployment information over time. The data has `r nrow(unemployment_data)` observations, with `r ncol(unemployment_data)` variables, and it's key variables are `r ls(unemployment_data)`. In addition,the range of years is (`r range(pull(unemployment_data,year))`). 4) For the last dataset (final_data), which consist of the above three datasets. It has `r nrow(final_data)` observations, with `r ncol(final_data)` variables, and it's key variables are `r ls(final_data)`. Furthermore,the range of years is (`r range(pull(final_data,year))`).
 
 #Problem 3
 ```{r baby_names}
@@ -135,9 +151,12 @@ male_child=filter(baby_names, gender=='male',rank=="1") %>%
               names_from = "year_of_birth",
               values_from = "childs_first_name") 
 
-male_white_nonhis=filter(baby_names, ethnicity=="white non hispanic", year_of_birth =="2016")
+male_white_nonhis=filter(baby_names, gender== "male", ethnicity=="white non hispanic", year_of_birth =="2016")
 
 ggplot(male_white_nonhis,aes(x =rank ,y = count, color=rank)) + geom_point()
 
 
 ```
+
+The above scatter plot shows the  number of male, white non-hispanic children born in 2016 with a name (y axis) against the rank in popularity of that name (x axis).The trend of the scatter plot is that counts decrease from approximately 260 to nearly zero as rank increases from 0 to 100.
+
