@@ -11,26 +11,133 @@ library(tidyverse)
 library(readxl)
 ```
 
+#Problem 1
+The chunk below serves to read and clean the Mr. Trash Wheel sheet.
 ```{r Trash_Wheel}
-wheel_data = read_excel("hw2data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", skip = 1, sheet = 1, range="A2:n338") %>% 
-    janitor::clean_names() %>% 
+#read the excel file
+wheel_data = read_excel("hw2data/Trash-Wheel-Collection-Totals-8-6-19.xlsx", skip = 1, sheet = 1) %>% 
+    #use reasonable variable names
+    janitor::clean_names() %>%
+  
+    #omit rows that do not include dumpster-specific data
+    select(dumpster:homes_powered) %>%
     drop_na(dumpster) %>% 
+    
+    #round the number of sports balls to the nearest integer and converts the result to an integer variable
     mutate(sports_balls = round(sports_balls,digits = 0)) %>% 
     mutate(sports_balls = as.integer(sports_balls))
     
 ```
 
+
+The chunk below serves to read and clean the precipitation data for 2017 and 2018.
 ```{r precipitation2018}
-precipitation2018_data=read_excel("hw2data/HealthyHarborWaterWheelTotals2018-7-28.xlsx",skip = 1, sheet = 3,range="A2:B14") %>% 
+#read the excel file (2018 precipitation data)
+precipitation2018_data=read_excel("hw2data/Trash-Wheel-Collection-Totals-8-6-19.xlsx",skip = 1, sheet = 5,range ="A2:B15") %>% 
+  
+  #use reasonable variable names
   janitor::clean_names() %>%
-  drop_na(total) %>% 
+  
+  # omit rows without precipitation data
+  drop_na() %>% 
+  
+  # add a variable year 
   mutate(year = 2018)
-   
+
+#read the excel file (2017 precipitation data)
+precipitation2017_data=read_excel("hw2data/Trash-Wheel-Collection-Totals-8-6-19.xlsx",skip = 1, sheet = 6,range ="A2:B14") %>% 
+  
+   #use reasonable variable names
+  janitor::clean_names() %>%
+  
+  # omit rows without precipitation data
+  drop_na() %>% 
+  
+  # add a variable year 
+  mutate(year = 2017)
+
+#combine the above two datasets
+combine_data=bind_rows(precipitation2017_data, precipitation2018_data) %>% 
+  janitor::clean_names() %>%
+  
+  #convert month to a character variable
+  mutate(month=month.name[month])
+
 ```
 
-```{r precipitation2017}
-precipitation2017_data=read_excel("hw2data/HealthyHarborWaterWheelTotals2018-7-28.xlsx",skip = 1, sheet = 4,range="A2:B14") %>% 
+Description: For the first dataset (wheel_data), there exist `r nrow(wheel_data)` observations, with `r ncol(wheel_data)`, and it's key variables are `r ls(wheel_data)`. Furthermore,the median number of sports balls in a dumpster in 2017 is `r median(wheel_data)`. As for the second dataset (combine_data), there exist `r nrow(combine_data)` observations, with `r ncol(combine_data)`, and it's key variables are `r ls(combine_data)`. Moreover, the total precipitation in 2018 is `r sum(pull(precipitation2018_data,total))`.
+
+
+#Problem 2
+```{r pol_month}
+pol_data=read_csv(file ="hw2data/pols-month.csv") %>% 
   janitor::clean_names() %>%
-  mutate(year = 2018)
-   
+ separate(mon, into = c("year","month","day"), sep = "-") %>%
+ mutate(month=as.integer(month)) %>% 
+ mutate(month = month.name[month]) %>% 
+  select(year, month, day, prez_gop,prez_dem, everything()) %>%
+    pivot_longer(
+    prez_gop:prez_dem,
+    names_to = "president", 
+    names_prefix = "prez_",
+    values_to = "president_values") %>% 
+    filter(president_values=="0") %>% 
+  select(-day,-president_values)
+
+snp_data=read_csv(file ="hw2data/snp.csv") %>%
+   janitor::clean_names() %>%
+  separate(date, into = c("month","day","year"), sep = "/") %>%
+  arrange(year,month) %>% 
+  mutate(month = as.integer(month)) %>% 
+  mutate(month = month.name[month]) %>% 
+  select(-day) %>% 
+  select(year, month, close)
+
+unemployment_data = read_csv(file ="hw2data/unemployment.csv") %>%
+               pivot_longer(
+                 Jan:Dec,
+                 names_to = "month",
+                 values_to = "unemployment") %>% 
+              rename(year = Year) %>% 
+       mutate(year=as.character(year)) %>% 
+       mutate(month = str_subset(month.name, str_to_sentence(month)))
+
+#Join the datasets by merging snp into pols, and merging unemployment into the result.
+pol_snp=left_join(pol_data,snp_data, by=c("year","month"))
+ 
+
+final_data=left_join(pol_snp,unemployment_data, by=c("year","month"))
+
+```
+Description: For the first dataset (pol_data), there exist `r nrow(pol_data)` observations, with `r ncol(pol_data)`, and it's key variables are `r ls(pol_data)`. Furthermore,the range of years is `r range(pol_data,year)`. For the second dataset (snp_data), there exist `r nrow(snp_data)` observations, with `r ncol(snp_data)`, and it's key variables are `r ls(snp_data)`. Furthermore,the range of years is `r range(snp_data,year)`.  For the third dataset (unemployment_data), there exist `r nrow(unemployment_data)` observations, with `r ncol(unemployment_data)`, and it's key variables are `r ls(unemployment_data)`. Furthermore,the range of years is `r range(unemployment_data,year)`.
+For the last dataset (final_data), which consist of the above three datasets.It has `r nrow(pol_data)` observations, with `r ncol(pol_data)`, and it's key variables are `r ls(pol_data)`. Furthermore,the range of years is `r range(pol_data,year)`.
+
+#Problem 3
+```{r baby_names}
+baby_names = read_csv(file='hw2data/Popular_Baby_Names.csv') %>% 
+   janitor::clean_names() %>%
+mutate(childs_first_name = str_to_sentence(childs_first_name)) %>% 
+mutate(ethnicity = str_to_lower(ethnicity)) %>% 
+mutate(ethnicity=replace(ethnicity,ethnicity=="white non hisp","white non hispanic")) %>% 
+mutate(ethnicity=replace(ethnicity,ethnicity=="asian and paci","asian and pacific")) %>% 
+mutate(ethnicity=replace(ethnicity,ethnicity=="black non hisp","black non hispanic")) %>% 
+mutate(gender = str_to_lower(gender)) %>% 
+distinct()
+
+
+olivia_data=filter(baby_names, childs_first_name=='Olivia') %>% 
+  pivot_wider(id_cols = ethnicity,
+              names_from = "year_of_birth",
+              values_from = "rank") 
+
+male_child=filter(baby_names, gender=='male',rank=="1") %>% 
+   pivot_wider(id_cols = ethnicity,
+              names_from = "year_of_birth",
+              values_from = "childs_first_name") 
+
+male_white_nonhis=filter(baby_names, ethnicity=="white non hispanic", year_of_birth =="2016")
+
+ggplot(male_white_nonhis,aes(x =rank ,y = count, color=rank)) + geom_point()
+
+
 ```
