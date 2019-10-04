@@ -34,7 +34,7 @@ wheel_data
 
 
 The chunk below serves to read and clean the precipitation data for 2017 and 2018.
-```{r precipitation2018}
+```{r precipitation2018,message=FALSE, collapse=TRUE}
 #read the excel file (2018 precipitation data)
 precipitation2018_data = read_excel("hw2data/Trash-Wheel-Collection-Totals-8-6-19.xlsx",skip = 1, sheet = 5,range = "A2:B15") %>% 
   
@@ -81,7 +81,7 @@ Furthermore,the median number of sports balls in a dumpster in 2017 is `r median
 
 
 #Problem 2
-```{r pol_month}
+```{r pol_month,message=FALSE, collapse=TRUE}
 #clean the data in pols-month.csv
 pol_data = read_csv(file = "hw2data/pols-month.csv") %>% 
   janitor::clean_names() %>%
@@ -136,7 +136,7 @@ Description: 1) For the first dataset (pol_data), which contains number of natio
 
 
 #Problem 3
-```{r baby_names}
+```{r baby_names,message=FALSE, collapse=TRUE}
 #Load and tidy the data of popularity of baby names
 baby_names = read_csv(file = 'hw2data/Popular_Baby_Names.csv') %>% 
    janitor::clean_names() %>%
