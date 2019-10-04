@@ -137,6 +137,7 @@ Description: 1) For the first dataset (pol_data), which contains the polls data 
 
 #Problem 3
 ```{r baby_names}
+#Load and tidy the data of popularity of baby names
 baby_names = read_csv(file = 'hw2data/Popular_Baby_Names.csv') %>% 
    janitor::clean_names() %>%
 mutate(childs_first_name = str_to_sentence(childs_first_name)) %>% 
@@ -147,19 +148,22 @@ mutate(ethnicity = replace(ethnicity,ethnicity == "black non hisp","black non hi
 mutate(gender = str_to_lower(gender)) %>% 
 distinct()
 
-
+#Produce a well-structured, reader-friendly table showing the rank in popularity of the name “Olivia” as a female baby name over time
 olivia_data = filter(baby_names, childs_first_name == 'Olivia') %>% 
   pivot_wider(id_cols = ethnicity,
               names_from = "year_of_birth",
               values_from = "rank") 
 
+#Produce a similar table showing the most popular name among male children over time
 male_child = filter(baby_names, gender == 'male',rank == "1") %>% 
    pivot_wider(id_cols = ethnicity,
               names_from = "year_of_birth",
               values_from = "childs_first_name") 
 
+#Create a data of male, white non-hispanic children born in 2016
 male_white_nonhis = filter(baby_names, gender == "male", ethnicity == "white non hispanic", year_of_birth == "2016")
 
+#Produce a scatter plot showing the number of children with a name (y axis) against the rank in popularity of that name (x axis)
 ggplot(male_white_nonhis,aes(x = rank ,y = count, color = rank)) + geom_point()
 
 
